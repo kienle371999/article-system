@@ -6,7 +6,11 @@ import { NewsController } from './news.controller';
 import { NewsService } from './news.service';
 
 @Module({
-  imports: [HttpModule, ConfigModule.forRoot(), CacheModule.register()],
+  imports: [
+    HttpModule,
+    ConfigModule.forRoot(),
+    CacheModule.register({ ttl: 0 }),
+  ],
   controllers: [NewsController],
   providers: [NewsService],
 })

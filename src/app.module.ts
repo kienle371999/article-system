@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { AxiosErrorInterceptor } from './interceptor/axios-error.interceptor';
+import { ErrorInterceptor } from './interceptor/error.interceptor';
 import { NewsModule } from './news/news.module';
 
 @Module({
@@ -8,7 +8,7 @@ import { NewsModule } from './news/news.module';
   providers: [
     {
       provide: APP_INTERCEPTOR,
-      useClass: AxiosErrorInterceptor,
+      useClass: ErrorInterceptor,
     },
   ],
 })

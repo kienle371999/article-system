@@ -2,7 +2,8 @@ import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom } from 'rxjs';
-import { News, Article } from './interfaces/new.interface';
+import { Language } from './enums/news.enum';
+import { News, Article } from './interfaces/news.interface';
 
 @Injectable()
 export class NewsService {
@@ -11,12 +12,13 @@ export class NewsService {
     private newsConfigService: ConfigService,
   ) {}
 
-  async getAll(): Promise<Article[]> {
+  private async fetchNews(params: any): Promise<News> {
     const observableNews = this.httpService
       .get<News>(this.newsConfigService.get('API_URL'), {
         headers: {
           'Content-Type': 'application/json',
         },
+        params,
       })
       .pipe(
         catchError((error) => {
@@ -25,53 +27,62 @@ export class NewsService {
       );
 
     const { data } = await firstValueFrom(observableNews);
-    return data.articles;
+    return data;
   }
 
-  async getArticles(pageSize: number): Promise<Article[]> {
-    const observableNews = this.httpService
-      .get<News>(this.newsConfigService.get('API_URL'), {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        params: {
-          max: pageSize,
-        },
-      })
-      .pipe(
-        catchError((error) => {
-          throw error;
-        }),
-      );
+  async getArticles(keyword: string, limit: number): Promise<News> {
+    if (!keyword || limit > 10) {
+      let errorMessage = '';
 
-    const { data } = await firstValueFrom(observableNews);
-    return data.articles;
+      if (!keyword) {
+        errorMessage = 'The keyword is a required param.';
+      } else if (limit > 10) {
+        errorMessage = 'The maximum displayed articles are 10.';
+      }
+
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+
+    const params = {
+      apikey: this.newsConfigService.get('API_KEY'),
+      q: keyword,
+      max: limit,
+    };
+
+    const response = await this.fetchNews(params);
+    return {
+      totalArticles: response.articles.length,
+      articles: response.articles,
+    };
   }
 
-  async getArticlesByTitile(title: string): Promise<Article> {
-    const observableNews = this.httpService
-      .get<News>(this.newsConfigService.get('API_URL'), {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        params: {
-          in: title,
-        },
-      })
-      .pipe(
-        catchError((error) => {
-          throw error;
-        }),
-      );
+  async getArticlesByTitile(keyword: string, title: string): Promise<Article> {
+    if (!keyword || !title) {
+      let errorMessage = '';
 
-    const { data } = await firstValueFrom(observableNews);
-    const correctArticle = data.articles.find(
+      if (!keyword) {
+        errorMessage = 'The keyword is a required param.';
+      } else if (!title) {
+        errorMessage = 'The title is a required param.';
+      }
+
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+
+    const params = {
+      apikey: this.newsConfigService.get('API_KEY'),
+      q: keyword,
+      in: title,
+    };
+
+    const response = await this.fetchNews(params);
+    const correctArticle = response.articles.find(
       (article) => article.title === title,
     );
 
     if (!correctArticle) {
       throw new HttpException(
-        'No article found with this title',
+        'No article is found with this title',
         HttpStatus.NOT_FOUND,
       );
     }
@@ -79,24 +90,35 @@ export class NewsService {
     return correctArticle;
   }
 
-  async getArticleByKeyworld(keyword: string): Promise<Article[]> {
-    console.log(keyword);
-    const observableNews = this.httpService
-      .get<News>(this.newsConfigService.get('API_URL'), {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        params: {
-          in: 'title, description, content',
-        },
-      })
-      .pipe(
-        catchError((error) => {
-          throw error;
-        }),
-      );
+  async getArticlesByLanguage(keyword: string, language: string) {
+    if (
+      !keyword ||
+      !language ||
+      !Object.values(Language).includes(language as Language)
+    ) {
+      let errorMessage = '';
 
-    const { data } = await firstValueFrom(observableNews);
-    return data.articles;
+      if (!keyword) {
+        errorMessage = 'The keyword is a required param.';
+      } else if (!language) {
+        errorMessage = 'The language is a required param.';
+      } else if (!Object.values(Language).includes(language as Language)) {
+        errorMessage = 'The language is not supported.';
+      }
+
+      throw new HttpException(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+
+    const params = {
+      apikey: this.newsConfigService.get('API_KEY'),
+      q: keyword,
+      lang: language,
+    };
+
+    const response = await this.fetchNews(params);
+    return {
+      totalArticles: response.articles.length,
+      articles: response.articles,
+    };
   }
 }
