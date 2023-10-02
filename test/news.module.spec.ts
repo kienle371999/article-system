@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { AppModule } from './../src/app.module';
 
 describe('API test cases for the news module', () => {
   let app: INestApplication;
@@ -64,6 +64,16 @@ describe('API test cases for the news module', () => {
       .expect(400, {
         statusCode: 400,
         message: 'The title is a required param.',
+      });
+  });
+
+  it('Should return that no article is found with this title when the title is not found', () => {
+    return request(app.getHttpServer())
+      .get('/api/v1/news/search/title')
+      .query({ keyword: 'example', title: 'Hello world' })
+      .expect(404, {
+        statusCode: 404,
+        message: 'No article is found with this title.',
       });
   });
 

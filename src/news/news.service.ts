@@ -82,7 +82,7 @@ export class NewsService {
 
     if (!correctArticle) {
       throw new HttpException(
-        'No article is found with this title',
+        'No article is found with this title.',
         HttpStatus.NOT_FOUND,
       );
     }
