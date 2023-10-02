@@ -1,6 +1,6 @@
 # The simple APIs interact with a public news API for fetching articles 
 
-The system is a collection of simple APIs that interact with a public news API for fetching articles. The system includes a cache in the API service to reduce the need for redundant API requests to fetch the same data repeatedly. This system is implemented by NestJS.
+The system is a collection of simple APIs that interact with a public news API for fetching articles. The system includes a cache in the API service to reduce the need for redundant API requests to fetch the same data repeatedly. The system generates a API Document using Swagger. This system is implemented by NestJS.
 
 ## Installation
 ```console
