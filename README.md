@@ -4,6 +4,7 @@ The system is a collection of simple APIs that interact with a public news API f
 
 ## Installation
 ```console
+cp .env.example .env 
 npm install
 ```
 
